@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0a0a0c" />
+    <title>Eastside — Optical / Sun</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Syne:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="gridBg" aria-hidden="true"></div>
+    <div class="orb a" aria-hidden="true"></div>
+    <div class="orb b" aria-hidden="true"></div>
+    <div class="orb c" aria-hidden="true"></div>
+    <div class="noise" aria-hidden="true"></div>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marqueeTrack">
+        <span>DROP 01</span><span>UV400</span><span>SEOUL</span><span>NO RULES</span>
+        <span>OPTICAL</span><span>SUN</span><span>틀을 깨다</span><span>Eastside</span>
+        <span>DROP 01</span><span>UV400</span><span>SEOUL</span><span>NO RULES</span>
+        <span>OPTICAL</span><span>SUN</span><span>틀을 깨다</span><span>Eastside</span>
+      </div>
+    </div>
+
+    <main>
+      <section class="frame" aria-label="Eastside 쇼핑">
+        <header class="topbar">
+          <a class="brand" href="#/shop" data-route="shop" id="brandHome">
+            <span class="brandMark" aria-hidden="true"></span>
+            <div class="title">
+              <div class="name"><span class="wordmark">Eastside</span></div>
+              <div class="sub">Optical · Sun · 실험적인 실루엣</div>
+            </div>
+          </a>
+
+          <nav class="nav" aria-label="주요 메뉴">
+            <button class="tab" data-route="shop" type="button">Shop</button>
+            <button class="tab" data-route="cart" type="button">
+              Cart <span class="badge" id="cartCount">0</span>
+            </button>
+            <button class="tab" data-route="checkout" type="button">Pay</button>
+            <button class="tab tabAdmin" data-route="admin" type="button">Admin</button>
+          </nav>
+        </header>
+
+        <div class="content">
+          <section class="route" id="route-shop" aria-label="상점">
+            <header class="hero">
+              <p class="heroEyebrow">Seasonless eyewear lab</p>
+              <h2 class="heroHeadline">
+                <span class="heroSerif">시야를 바꾸는</span>
+                <span class="heroSans">프레임</span>
+              </h2>
+              <p class="heroCopy">
+                안경테와 선글라스를 경계 없이 섞어 쓰는 세대를 위해. 과장 없는 블랙 베이스에 네온 포인트,
+                <strong>지금 이 순간만</strong> 보이는 조합을 골라보세요.
+              </p>
+            </header>
+
+            <div class="toolbar">
+              <div class="search">
+                <input id="q" type="search" placeholder="브랜드 · 모델 · 무드 검색" />
+              </div>
+              <div class="filters">
+                <select id="category">
+                  <option value="">전체</option>
+                  <option value="optical">안경테</option>
+                  <option value="sunglasses">선글라스</option>
+                </select>
+                <select id="sort">
+                  <option value="popular">추천순</option>
+                  <option value="priceAsc">가격 낮은순</option>
+                  <option value="priceDesc">가격 높은순</option>
+                  <option value="nameAsc">이름순</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid" id="productGrid" aria-live="polite"></div>
+          </section>
+
+          <section class="route" id="route-cart" aria-label="장바구니" hidden>
+            <div class="twoCol">
+              <div class="panel">
+                <div class="panelHead">
+                  <div class="panelTitle">장바구니</div>
+                  <button class="ghost" id="clearCart" type="button">비우기</button>
+                </div>
+                <div id="cartList" class="list"></div>
+              </div>
+
+              <aside class="panel">
+                <div class="panelHead">
+                  <div class="panelTitle">요약</div>
+                </div>
+                <div class="summary" id="cartSummary"></div>
+                <button class="primary" id="goCheckout" type="button">결제 화면으로</button>
+              </aside>
+            </div>
+          </section>
+
+          <section class="route" id="route-checkout" aria-label="결제" hidden>
+            <div class="twoCol">
+              <div class="panel">
+                <div class="panelHead">
+                  <div class="panelTitle">배송/결제 정보</div>
+                </div>
+
+                <form id="checkoutForm" class="form">
+                  <div class="row2">
+                    <label class="field">
+                      <span class="label">이름</span>
+                      <input name="name" required placeholder="홍길동" />
+                    </label>
+                    <label class="field">
+                      <span class="label">연락처</span>
+                      <input name="phone" required placeholder="010-0000-0000" />
+                    </label>
+                  </div>
+
+                  <label class="field">
+                    <span class="label">주소</span>
+                    <input name="address" required placeholder="서울특별시 …" />
+                  </label>
+
+                  <div class="row2">
+                    <label class="field">
+                      <span class="label">결제수단</span>
+                      <select name="payMethod" required>
+                        <option value="card">카드(모의)</option>
+                        <option value="transfer">계좌이체(모의)</option>
+                        <option value="kakaopay">카카오페이(모의)</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span class="label">쿠폰 코드</span>
+                      <input name="coupon" placeholder="예: SAVE10" />
+                    </label>
+                  </div>
+
+                  <button class="primary" type="submit">결제하기(모의)</button>
+                  <div class="hintText" id="checkoutHint"></div>
+                </form>
+              </div>
+
+              <aside class="panel">
+                <div class="panelHead">
+                  <div class="panelTitle">주문 요약</div>
+                </div>
+                <div id="checkoutSummary" class="summary"></div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="route" id="route-admin" aria-label="관리자" hidden>
+            <div class="twoCol">
+              <div class="panel">
+                <div class="panelHead">
+                  <div class="panelTitle">상품 등록/수정</div>
+                  <button class="ghost" id="seedData" type="button">샘플 상품 채우기</button>
+                </div>
+                <form id="productForm" class="form">
+                  <input type="hidden" name="id" />
+                  <div class="row2">
+                    <label class="field">
+                      <span class="label">브랜드</span>
+                      <input name="brand" required placeholder="예: Lumen" />
+                    </label>
+                    <label class="field">
+                      <span class="label">모델명</span>
+                      <input name="name" required placeholder="예: Classic Round" />
+                    </label>
+                  </div>
+
+                  <div class="row2">
+                    <label class="field">
+                      <span class="label">카테고리</span>
+                      <select name="category" required>
+                        <option value="optical">안경테</option>
+                        <option value="sunglasses">선글라스</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      <span class="label">가격(원)</span>
+                      <input name="price" required inputmode="numeric" placeholder="79000" />
+                    </label>
+                  </div>
+
+                  <div class="row2">
+                    <label class="field">
+                      <span class="label">재고</span>
+                      <input name="stock" required inputmode="numeric" placeholder="20" />
+                    </label>
+                    <label class="field">
+                      <span class="label">태그(쉼표로 구분)</span>
+                      <input name="tags" placeholder="가벼움,티타늄,베스트" />
+                    </label>
+                  </div>
+
+                  <label class="field">
+                    <span class="label">이미지 URL(선택)</span>
+                    <input name="image" placeholder="https://…" />
+                  </label>
+
+                  <div class="actions">
+                    <button class="primary" type="submit">저장</button>
+                    <button class="ghost" id="resetForm" type="button">새로 등록</button>
+                  </div>
+                </form>
+              </div>
+
+              <aside class="panel">
+                <div class="panelHead">
+                  <div class="panelTitle">상품 목록</div>
+                  <button class="ghost danger" id="wipeProducts" type="button">전체 삭제</button>
+                </div>
+                <div id="adminList" class="list"></div>
+              </aside>
+            </div>
+          </section>
+
+          <section class="route" id="route-page" aria-label="안내 페이지" hidden>
+            <div class="staticToolbar">
+              <button type="button" class="ghost" id="staticBack">← 쇼핑으로 돌아가기</button>
+            </div>
+            <article class="staticArticle" id="staticPageRoot"></article>
+          </section>
+        </div>
+
+        <footer class="footer">
+          <div class="footerInner">
+            <nav class="footerLinks" aria-label="회사 및 정책 바로가기">
+              <a href="#/page/company">회사소개</a>
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="#/page/terms">이용약관</a>
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="#/page/privacy" class="emph">개인정보처리방침</a>
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="#/page/youth">청소년보호정책</a>
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="https://www.ftc.go.kr/bizCommPop.do" target="_blank" rel="noopener noreferrer"
+                >사업자정보확인</a
+              >
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="#/page/notice">공지사항</a>
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="#/page/support">고객센터</a>
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="#/page/shipping">배송·교환·반품</a>
+              <span class="sep" aria-hidden="true">|</span>
+              <a href="#/page/partners">제휴문의</a>
+            </nav>
+
+            <div class="bizInfo" role="group" aria-label="사업자 정보">
+              <p>
+                <strong>상호</strong> Eastside · <strong>대표</strong> 홍길동 ·
+                <strong>사업자등록번호</strong> 000-00-00000 ·
+                <strong>통신판매업</strong> 제0000-서울강남-0000호
+              </p>
+              <p>
+                <strong>주소</strong> 서울특별시 강남구 테헤란로 000 (데모 주소) ·
+                <strong>고객센터</strong> 1588-0000 (평일 10:00–17:00) ·
+                <strong>이메일</strong>
+                <a href="mailto:help@eastside.kr">help@eastside.kr</a>
+              </p>
+            </div>
+
+            <div class="footerMeta">
+              <span class="demoNote"
+                >데모 사이트 · 결제·주문은 모의 처리 · 데이터는 브라우저에 저장됩니다.</span
+              >
+              <button class="ghost small" id="resetAll" type="button">데이터 초기화</button>
+            </div>
+          </div>
+        </footer>
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
