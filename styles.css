@@ -27,6 +27,11 @@
   box-sizing: border-box;
 }
 
+/* `hidden` 속성은 기본 display:none인데, .routeAuth 등이 display를 덮어써서 숨김이 깨지는 경우 방지 */
+[hidden] {
+  display: none !important;
+}
+
 html,
 body {
   height: 100%;
@@ -570,6 +575,7 @@ select {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 10px;
   padding: 16px 18px;
   border-bottom: 1px solid var(--line);
@@ -583,6 +589,77 @@ select {
   text-transform: uppercase;
   font-size: 11px;
   color: var(--ink);
+}
+
+.panelHeadActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.routeAuth {
+  min-height: min(62vh, 520px);
+  display: grid;
+  align-items: center;
+}
+
+.authLayout {
+  display: grid;
+  place-items: center;
+  padding: clamp(8px, 2vw, 20px) 0;
+}
+
+.authCard {
+  width: min(440px, 100%);
+}
+
+.authCardBody {
+  padding: clamp(20px, 4vw, 32px);
+}
+
+.authHeader {
+  margin-bottom: 20px;
+}
+
+.authEyebrow {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.authHeading {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 3.5vw, 1.65rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.authSub {
+  margin: 0;
+  max-width: 42ch;
+}
+
+.authForm .primary {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.authExtra {
+  margin-top: 10px;
+}
+
+.authBackLink {
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .list {

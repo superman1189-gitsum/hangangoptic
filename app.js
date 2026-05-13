@@ -3,6 +3,8 @@
     products: "glasses_app_products_v1",
     cart: "glasses_app_cart_v1",
     orders: "glasses_app_orders_v1",
+    admins: "glasses_app_admins_v1",
+    adminSession: "glasses_app_admin_session_v1",
   };
 
   const $ = (sel) => document.querySelector(sel);
@@ -32,6 +34,153 @@
 
   function writeJson(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function randomSalt() {
+    const a = new Uint8Array(16);
+    if (window.crypto?.getRandomValues) crypto.getRandomValues(a);
+    else for (let i = 0; i < a.length; i++) a[i] = (Math.random() * 256) | 0;
+    return Array.from(a, (b) => b.toString(16).padStart(2, "0")).join("");
+  }
+
+  async function digestPassword(password, salt) {
+    const payload = salt + "\0" + password;
+    if (window.crypto?.subtle) {
+      const enc = new TextEncoder();
+      const buf = await crypto.subtle.digest("SHA-256", enc.encode(payload));
+      return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+    }
+    let h = 5381;
+    for (let i = 0; i < payload.length; i++) h = ((h << 5) + h + payload.charCodeAt(i)) >>> 0;
+    return "legacy_" + h.toString(16);
+  }
+
+  function validateUsername(raw) {
+    const s = String(raw || "").trim();
+    if (s.length < 3 || s.length > 32) return null;
+    if (/[<>]/.test(s)) return null;
+    return s;
+  }
+
+  function getAdmins() {
+    return readJson(STORAGE_KEYS.admins, []);
+  }
+  function setAdmins(admins) {
+    writeJson(STORAGE_KEYS.admins, admins);
+  }
+
+  function getAdminSession() {
+    return readJson(STORAGE_KEYS.adminSession, null);
+  }
+  function setAdminSession(obj) {
+    if (!obj) localStorage.removeItem(STORAGE_KEYS.adminSession);
+    else writeJson(STORAGE_KEYS.adminSession, obj);
+  }
+
+  function isAdminSessionValid() {
+    const s = getAdminSession();
+    if (!s || !s.username || !s.exp) return false;
+    if (Date.now() > Number(s.exp)) {
+      setAdminSession(null);
+      return false;
+    }
+    if (!getAdmins().some((a) => a.username === s.username)) {
+      setAdminSession(null);
+      return false;
+    }
+    return true;
+  }
+
+  function startAdminSession(username) {
+    setAdminSession({ username, exp: Date.now() + SESSION_MS });
+  }
+
+  function clearAdminSession() {
+    setAdminSession(null);
+  }
+
+  function isAdminHash() {
+    const h = (location.hash || "").replace(/\/$/, "");
+    return ["#/admin", "#/admin/login", "#/admin/register"].includes(h);
+  }
+
+  function adminScreen() {
+    const h = (location.hash || "").replace(/\/$/, "");
+    if (h === "#/admin/login") return "login";
+    if (h === "#/admin/register") return "register";
+    if (h === "#/admin") return "panel";
+    return null;
+  }
+
+  async function verifyAdminLogin(username, password) {
+    const u = validateUsername(username);
+    if (!u) return false;
+    const row = getAdmins().find((a) => a.username === u);
+    if (!row) return false;
+    const h = await digestPassword(password, row.salt);
+    return h === row.hash;
+  }
+
+  async function registerAdminAccount(username, password) {
+    const u = validateUsername(username);
+    if (!u) throw new Error("아이디는 3~32자이며, 기호 < > 는 사용할 수 없어요.");
+    if (String(password || "").length < 8) throw new Error("비밀번호는 8자 이상이어야 해요.");
+    const admins = getAdmins();
+    if (admins.some((a) => a.username === u)) throw new Error("이미 사용 중인 아이디예요.");
+    const salt = randomSalt();
+    const hash = await digestPassword(password, salt);
+    admins.push({
+      id: "adm_" + Date.now().toString(16),
+      username: u,
+      salt,
+      hash,
+      createdAt: new Date().toISOString(),
+    });
+    setAdmins(admins);
+    return u;
+  }
+
+  const ROUTE_IDS = ["shop", "cart", "checkout", "admin", "admin-login", "admin-register", "page"];
+
+  function peekAdminLoginFlash() {
+    const k = "eastside_admin_login_flash";
+    const v = sessionStorage.getItem(k);
+    sessionStorage.removeItem(k);
+    return v || "";
+  }
+
+  function hideAllRoutes() {
+    ROUTE_IDS.forEach((id) => {
+      const el = $(`#route-${id}`);
+      if (el) el.hidden = true;
+    });
+  }
+
+  function renderLoginLinks() {
+    const box = $("#adminLoginLinks");
+    if (!box) return;
+    if (getAdmins().length === 0) {
+      box.innerHTML =
+        '<p class="hintText">등록된 관리자가 없어요. <a href="#/admin/register">첫 관리자 등록</a>으로 시작하세요.</p>';
+    } else {
+      box.innerHTML =
+        '<p class="hintText">새 계정은 로그인한 관리자만 등록할 수 있어요. 계정이 필요하면 기존 관리자에게 요청하세요.</p>';
+    }
+  }
+
+  function renderRegisterIntro() {
+    const el = $("#adminRegisterIntro");
+    if (!el) return;
+    const admins = getAdmins();
+    if (admins.length === 0) {
+      el.textContent =
+        "첫 관리자를 만든 뒤 로그인하면 상품 관리 화면으로 이동합니다. (데모: 이 브라우저에만 저장)";
+    } else {
+      el.textContent =
+        "로그인된 관리자만 다른 계정을 추가할 수 있어요. 비밀번호는 SHA-256(솔트)로만 저장됩니다.";
+    }
   }
 
   function getProducts() {
@@ -209,6 +358,10 @@
   function routeTo(name) {
     const routes = ["shop", "cart", "checkout", "admin"];
     const next = routes.includes(name) ? name : "shop";
+    if (next === "admin") {
+      location.hash = "#/admin";
+      return;
+    }
     location.hash = `#/${next}`;
   }
 
@@ -218,7 +371,8 @@
   }
 
   function currentRoute() {
-    const m = String(location.hash || "").match(/^#\/(shop|cart|checkout|admin)$/);
+    if (isAdminHash()) return "admin";
+    const m = String(location.hash || "").match(/^#\/(shop|cart|checkout)$/);
     return m?.[1] || "shop";
   }
 
@@ -579,12 +733,9 @@
 
   function renderRoute() {
     const slug = staticPageSlug();
-    const pageEl = $("#route-page");
     if (slug) {
-      ["shop", "cart", "checkout", "admin"].forEach((name) => {
-        const el = $(`#route-${name}`);
-        if (el) el.hidden = true;
-      });
+      hideAllRoutes();
+      const pageEl = $("#route-page");
       if (pageEl) pageEl.hidden = false;
       renderTabs(null);
       renderStaticPage(slug);
@@ -592,6 +743,49 @@
       return;
     }
 
+    hideAllRoutes();
+
+    if (isAdminHash()) {
+      const scr = adminScreen();
+      if (scr === "login") {
+        $("#route-admin-login").hidden = false;
+        $("#adminLoginHint").textContent = peekAdminLoginFlash();
+        renderLoginLinks();
+        renderTabs("admin");
+        $("#cartCount").textContent = String(cartCount());
+        return;
+      }
+      if (scr === "register") {
+        const admins = getAdmins();
+        if (admins.length > 0 && !isAdminSessionValid()) {
+          sessionStorage.setItem(
+            "eastside_admin_login_flash",
+            "관리자만 새 계정을 등록할 수 있어요. 로그인해 주세요."
+          );
+          location.hash = "#/admin/login";
+          return;
+        }
+        $("#route-admin-register").hidden = false;
+        $("#adminRegisterHint").textContent = "";
+        renderRegisterIntro();
+        renderTabs("admin");
+        $("#cartCount").textContent = String(cartCount());
+        return;
+      }
+      if (scr === "panel") {
+        if (!isAdminSessionValid()) {
+          location.hash = "#/admin/login";
+          return;
+        }
+        $("#route-admin").hidden = false;
+        renderTabs("admin");
+        renderAdmin();
+        $("#cartCount").textContent = String(cartCount());
+        return;
+      }
+    }
+
+    const pageEl = $("#route-page");
     if (pageEl) pageEl.hidden = true;
     const r = currentRoute();
     renderTabs(r);
@@ -604,11 +798,17 @@
     if (r === "shop") renderShop();
     if (r === "cart") renderCart();
     if (r === "checkout") renderCheckout();
-    if (r === "admin") renderAdmin();
   }
 
   function renderAll() {
     if (staticPageSlug()) {
+      $("#cartCount").textContent = String(cartCount());
+      return;
+    }
+    if (isAdminHash()) {
+      const scr = adminScreen();
+      if (scr === "panel" && isAdminSessionValid()) renderAdmin();
+      renderTabs("admin");
       $("#cartCount").textContent = String(cartCount());
       return;
     }
@@ -617,7 +817,6 @@
     if (r === "shop") renderShop();
     if (r === "cart") renderCart();
     if (r === "checkout") renderCheckout();
-    if (r === "admin") renderAdmin();
     $("#cartCount").textContent = String(cartCount());
   }
 
@@ -665,6 +864,63 @@
       renderAll();
     });
     $("#goCheckout").addEventListener("click", () => routeTo("checkout"));
+
+    $("#adminLoginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const hint = $("#adminLoginHint");
+      hint.textContent = "확인 중…";
+      const u = validateUsername(form.username.value);
+      const ok = await verifyAdminLogin(form.username.value, form.password.value);
+      if (!ok || !u) {
+        hint.textContent = "아이디 또는 비밀번호가 올바르지 않아요.";
+        return;
+      }
+      startAdminSession(u);
+      form.password.value = "";
+      hint.textContent = "";
+      location.hash = "#/admin";
+    });
+
+    $("#adminRegisterForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = e.currentTarget;
+      const hint = $("#adminRegisterHint");
+      hint.textContent = "";
+      const pw = form.password.value;
+      if (pw !== form.password2.value) {
+        hint.textContent = "비밀번호 확인이 일치하지 않아요.";
+        return;
+      }
+      const adminsBefore = getAdmins().length;
+      try {
+        if (adminsBefore > 0 && !isAdminSessionValid()) {
+          hint.textContent = "로그인한 관리자만 새 계정을 등록할 수 있어요.";
+          return;
+        }
+        const name = await registerAdminAccount(form.username.value, pw);
+        form.reset();
+        if (adminsBefore === 0) {
+          startAdminSession(name);
+          hint.textContent = "첫 관리자로 로그인했어요. 상품 관리로 이동합니다.";
+          location.hash = "#/admin";
+        } else {
+          hint.textContent = `“${name}” 계정을 추가했어요.`;
+          location.hash = "#/admin";
+        }
+      } catch (err) {
+        hint.textContent = err.message || "등록에 실패했어요.";
+      }
+    });
+
+    $("#adminLogout").addEventListener("click", () => {
+      clearAdminSession();
+      location.hash = "#/admin/login";
+    });
+
+    $("#goAdminRegister").addEventListener("click", () => {
+      location.hash = "#/admin/register";
+    });
 
     $("#checkoutForm").addEventListener("input", () => {
       if (currentRoute() === "checkout") renderCheckout();
@@ -790,6 +1046,8 @@
       localStorage.removeItem(STORAGE_KEYS.products);
       localStorage.removeItem(STORAGE_KEYS.cart);
       localStorage.removeItem(STORAGE_KEYS.orders);
+      localStorage.removeItem(STORAGE_KEYS.admins);
+      localStorage.removeItem(STORAGE_KEYS.adminSession);
       seedProducts(true);
       setCart([]);
       renderAll();

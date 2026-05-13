@@ -169,7 +169,11 @@
               <div class="panel">
                 <div class="panelHead">
                   <div class="panelTitle">상품 등록/수정</div>
-                  <button class="ghost" id="seedData" type="button">샘플 상품 채우기</button>
+                  <div class="panelHeadActions">
+                    <button class="ghost" id="goAdminRegister" type="button">관리자 추가</button>
+                    <button class="ghost" id="seedData" type="button">샘플 상품 채우기</button>
+                    <button class="ghost" id="adminLogout" type="button">로그아웃</button>
+                  </div>
                 </div>
                 <form id="productForm" class="form">
                   <input type="hidden" name="id" />
@@ -228,6 +232,78 @@
                 </div>
                 <div id="adminList" class="list"></div>
               </aside>
+            </div>
+          </section>
+
+          <section class="route routeAuth" id="route-admin-login" aria-label="관리자 로그인" hidden>
+            <div class="authLayout">
+              <div class="authCard panel">
+                <div class="authCardBody">
+                  <header class="authHeader">
+                    <p class="authEyebrow">Admin access</p>
+                    <h2 class="authHeading">관리자 로그인</h2>
+                    <p class="hintText authSub">상품·재고 관리 화면입니다. 데모: 비밀번호는 이 기기 브라우저에만 저장됩니다.</p>
+                  </header>
+                  <form id="adminLoginForm" class="form authForm" autocomplete="username">
+                    <label class="field">
+                      <span class="label">아이디</span>
+                      <input name="username" required minlength="3" maxlength="32" autocomplete="username" />
+                    </label>
+                    <label class="field">
+                      <span class="label">비밀번호</span>
+                      <input
+                        name="password"
+                        type="password"
+                        required
+                        minlength="8"
+                        autocomplete="current-password"
+                      />
+                    </label>
+                    <button class="primary" type="submit">로그인</button>
+                    <p class="hintText" id="adminLoginHint" role="status"></p>
+                    <div id="adminLoginLinks" class="authExtra"></div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="route routeAuth" id="route-admin-register" aria-label="관리자 등록" hidden>
+            <div class="authLayout">
+              <div class="authCard panel">
+                <div class="authCardBody">
+                  <header class="authHeader">
+                    <p class="authEyebrow">Admin onboarding</p>
+                    <h2 class="authHeading">관리자 등록</h2>
+                    <p class="hintText authSub" id="adminRegisterIntro"></p>
+                  </header>
+                  <form id="adminRegisterForm" class="form authForm" autocomplete="off">
+                    <label class="field">
+                      <span class="label">아이디</span>
+                      <input name="username" required minlength="3" maxlength="32" autocomplete="off" />
+                    </label>
+                    <label class="field">
+                      <span class="label">비밀번호</span>
+                      <input name="password" type="password" required minlength="8" autocomplete="new-password" />
+                    </label>
+                    <label class="field">
+                      <span class="label">비밀번호 확인</span>
+                      <input
+                        name="password2"
+                        type="password"
+                        required
+                        minlength="8"
+                        autocomplete="new-password"
+                      />
+                    </label>
+                    <button class="primary" type="submit">관리자 저장</button>
+                    <p class="hintText" id="adminRegisterHint" role="status"></p>
+                    <div class="authExtra">
+                      <a href="#/admin/login" class="authBackLink">로그인 화면으로</a>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </section>
 
